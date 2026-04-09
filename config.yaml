@@ -1,0 +1,19 @@
+paths:
+  data_raw: "data/raw"
+  data_processed: "data/processed"
+  data_embeddings: "data/embeddings"
+
+rag:
+  chunk_size: 500
+  chunk_overlap: 50
+  embedding_model: "text-embedding-3-small"
+
+llm:
+  provider: "openai"
+  model_name: "gpt-4o-mini"
+
+tools:
+  weather_api_key: "YOUR_WEATHER_API_KEY"
+
+app:
+  title: "Assistant RAG + Agents"
