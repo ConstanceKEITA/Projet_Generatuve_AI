@@ -9,7 +9,7 @@ class SimpleVectorStore:
     def similarity_search(self, query_embedding: list, k: int = 3) -> List[Tuple[str, float]]:
         query = np.array(query_embedding)
         sims = self.embeddings @ query / (
-            np.linalg.norm(self.embeddings, axis=1) * np.linalg.norm(query) + 1e-8
+                np.linalg.norm(self.embeddings, axis=1) * np.linalg.norm(query) + 1e-8
         )
         idxs = sims.argsort()[::-1][:k]
         return [(self.texts[i], float(sims[i])) for i in idxs]
