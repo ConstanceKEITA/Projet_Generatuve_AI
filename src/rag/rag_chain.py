@@ -1,7 +1,7 @@
 import os
 import yaml
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_mistralai import ChatMistralAI, MistralAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
@@ -9,10 +9,11 @@ from langchain.prompts import PromptTemplate
 load_dotenv()
 
 PROMPT_TEMPLATE = """
-Tu es un assistant expert. Réponds toujours en français.
+Tu es un assistant expert en Droit International Humanitaire (DIH).
+Réponds toujours en français de manière claire et précise.
 Utilise uniquement le contexte ci-dessous pour répondre.
 Si la réponse ne se trouve pas dans le contexte, dis clairement que tu ne sais pas.
-Cite toujours tes sources avec [source].
+Cite toujours tes sources avec [source] et l'article concerné.
 
 Contexte:
 {context}
@@ -24,19 +25,21 @@ Réponse:
 
 
 def build_rag_chain(config_path="config.yaml"):
-    """Charge le vectorstore et construit la chain RAG."""
+    """Charge le vectorstore Mistral et construit la chain RAG."""
 
     with open(config_path) as f:
         cfg = yaml.safe_load(f)
 
-    # Charger le vectorstore depuis le disque
-    embeddings = OpenAIEmbeddings(
-        model=cfg["rag"]["embedding_model"],
-        openai_api_key=os.getenv("OPENAI_API_KEY")
+    # Embeddings Mistral — compatible avec le vectorstore du compañero
+    embeddings = MistralAIEmbeddings(
+        model="mistral-embed",
+        api_key=os.getenv("MISTRAL_API_KEY")
     )
 
+    # Charger le vectorstore depuis le disque
+    vectorstore_path = cfg["paths"].get("data_embeddings", "data/vectorstore")
     vectorstore = FAISS.load_local(
-        cfg["paths"]["data_embeddings"],
+        vectorstore_path,
         embeddings,
         allow_dangerous_deserialization=True
     )
@@ -46,11 +49,11 @@ def build_rag_chain(config_path="config.yaml"):
         search_kwargs={"k": 3}
     )
 
-    # LLM
-    llm = ChatOpenAI(
-        model=cfg["llm"]["model_name"],
+    # LLM Mistral
+    llm = ChatMistralAI(
+        model="mistral-small-latest",
         temperature=0,
-        openai_api_key=os.getenv("OPENAI_API_KEY")
+        api_key=os.getenv("MISTRAL_API_KEY")
     )
 
     # Prompt
@@ -79,10 +82,15 @@ def ask_rag(query: str, config_path="config.yaml") -> str:
     answer = result["result"]
 
     # Ajouter les sources si disponibles
-    sources = [
-        doc.metadata.get("source", "document")
-        for doc in result.get("source_documents", [])
-    ]
+    sources = []
+    for doc in result.get("source_documents", []):
+        source = doc.metadata.get("source", "document")
+        article = doc.metadata.get("article", "")
+        if article:
+            sources.append(f"{source} — {article}")
+        else:
+            sources.append(source)
+
     if sources:
         sources_uniques = list(set(sources))
         answer += f"\n\nSources : {', '.join(sources_uniques)}"
@@ -91,6 +99,6 @@ def ask_rag(query: str, config_path="config.yaml") -> str:
 
 
 if __name__ == "__main__":
-    question = "Quelles sont les procédures en cas d'incident ?"
+    question = "Qu'est-ce que le crime de génocide ?"
     print(f"Question : {question}\n")
     print(ask_rag(question))
