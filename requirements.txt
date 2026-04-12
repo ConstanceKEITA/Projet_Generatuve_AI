@@ -1,3 +1,4 @@
+# LangChain
 requests
 beautifulsoup4
 pdfplumber
@@ -5,8 +6,29 @@ tqdm
 langchain
 langchain-community
 langchain-openai
+langchain-mistralai
+
+# Vector store
 faiss-cpu
+
+# LLM / Embeddings
+openai
+
+# Document loaders
+pdfplumber
+python-docx
+
+# Config & env
 python-dotenv
 pydantic
+pyyaml
+
+# Web search
+tavily-python
+
+# Interface
+chainlit
+
+# API (optionnel)
 fastapi
 uvicorn

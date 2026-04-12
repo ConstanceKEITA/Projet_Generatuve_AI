@@ -1,16 +1,16 @@
 paths:
   data_raw: "data/raw"
   data_processed: "data/processed"
-  data_embeddings: "data/embeddings"
+  data_embeddings: "data/vectorstore"
 
 rag:
   chunk_size: 500
   chunk_overlap: 50
-  embedding_model: "text-embedding-3-small"
+  embedding_model: "mistral-embed"
 
 llm:
-  provider: "openai"
-  model_name: "gpt-4o-mini"
+  provider: "mistral"
+  model_name: "mistral-small-latest"
 
 tools:
   weather_api_key: "YOUR_WEATHER_API_KEY"
