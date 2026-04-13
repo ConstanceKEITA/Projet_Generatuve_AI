@@ -3,8 +3,8 @@ import yaml
 from dotenv import load_dotenv
 from langchain_mistralai import ChatMistralAI, MistralAIEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain.chains import RetrievalQA
-from langchain.prompts import PromptTemplate
+from langchain_classic.chains import RetrievalQA
+from langchain_core.prompts import PromptTemplate
 
 load_dotenv()
 

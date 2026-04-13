@@ -1,7 +1,9 @@
-from typing import Dict
+import re
 from src.tools.calculator import calculate
 from src.tools.weather import get_weather
 from src.tools.web_search import web_search
+from src.tools.summarizer import summarize
+from src.tools.citation_formatter import format_citation
 
 class Agent:
     def __init__(self, rag_callable):
@@ -11,17 +13,31 @@ class Agent:
         q_lower = query.lower()
 
         if "météo" in q_lower or "meteo" in q_lower:
-            # ex: "quelle est la météo à Paris ?"
             return get_weather("Paris")
 
-        if any(op in q_lower for op in ["+", "-", "*", "/"]):
+        if re.search(r'\d+\s*[\+\-\*\/]\s*\d+', q_lower):
             return calculate(query)
 
         if "recherche" in q_lower or "google" in q_lower or "web" in q_lower:
             return web_search(query)
 
-        if "document" in q_lower or "politique" in q_lower or "procédure" in q_lower:
-            return self.rag_callable(query)
+        if "résume" in q_lower or "résumer" in q_lower or "synthèse" in q_lower:
+            for kw in ["résume", "résumer", "synthèse"]:
+                if kw in q_lower:
+                    text = query[q_lower.index(kw) + len(kw):].strip()
+                    return summarize(text)
 
-        # fallback : simple LLM (mock)
-        return f"Réponse conversationnelle simple (mock) à: {query}"
+        if "citation" in q_lower or "citer" in q_lower or "référence" in q_lower or "formate" in q_lower:
+            for kw in ["citation", "citer", "référence", "formate"]:
+                if kw in q_lower:
+                    ref = query[q_lower.index(kw) + len(kw):].strip()
+                    return format_citation(ref)
+
+        # RAG d'abord
+        rag_response = self.rag_callable(query)
+
+        # Si le RAG ne sait pas → fallback web_search juridique
+        if "ne sais pas" in rag_response or "ne trouve pas" in rag_response:
+            return web_search(query)
+
+        return rag_response

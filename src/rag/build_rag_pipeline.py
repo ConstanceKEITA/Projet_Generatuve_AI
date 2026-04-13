@@ -102,8 +102,15 @@ def build_pipeline(config_path="config.yaml"):
     log.info(f"  -> Vectorstore sauvegardé dans '{vectorstore_path}'")
 
     log.info(f"\nPipeline terminé — {len(documents)} chunks indexés avec succès !")
-    return vectorstore
 
+    # Test rapide
+    log.info("\n--- Test de recherche ---")
+    query = "Qu'est-ce que le crime de génocide ?"
+    results = vectorstore.similarity_search(query, k=3)
+    log.info(f"Requête : '{query}'")
+    for r in results:
+        log.info(f"  → [{r.metadata['source'][:40]}] {r.metadata['article']} : {r.page_content[:80]}...")
+    return vectorstore
 
 if __name__ == "__main__":
     build_pipeline()
