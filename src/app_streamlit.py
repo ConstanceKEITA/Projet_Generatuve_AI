@@ -24,15 +24,15 @@ st.set_page_config(
 # ── Style CSS ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    .main { background-color: #f8f9fa; }
-    .stTextInput input {
-        border-radius: 20px;
-        border: 2px solid #2c3e50;
-        padding: 10px 20px;
-        font-size: 16px;
+    [data-testid="stSidebar"] {
+        background-color: #1a3a5c;
     }
+    [data-testid="stSidebar"] * {
+        color: white !important;
+    }
+    .main { background-color: #ffffff; }
     .user-bubble {
-        background-color: #2c3e50;
+        background-color: #1a3a5c;
         color: white;
         padding: 10px 15px;
         border-radius: 15px 15px 0 15px;
@@ -42,29 +42,50 @@ st.markdown("""
         text-align: right;
     }
     .assistant-bubble {
-        background-color: #ffffff;
+        background-color: #eaf4fb;
         color: #2c3e50;
         padding: 10px 15px;
         border-radius: 15px 15px 15px 0;
         margin: 5px 0;
         max-width: 80%;
-        border: 1px solid #dee2e6;
+        border: 1px solid #2980b9;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     .tool-badge {
-        background-color: #e8f4fd;
-        color: #2980b9;
+        background-color: #2980b9;
+        color: white;
         padding: 2px 8px;
         border-radius: 10px;
         font-size: 12px;
         margin-bottom: 5px;
         display: inline-block;
     }
-    .sidebar-info {
-        background-color: #eaf4fb;
-        padding: 10px;
-        border-radius: 8px;
-        margin-bottom: 10px;
+     .stTextInput input {
+        border-radius: 20px;
+        border: 2px solid #f39c12;
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+    .stButton button {
+            background-color: #f39c12;
+            color: white;
+            border-radius: 20px;
+            font-weight: bold;
+    }
+""", unsafe_allow_html=True)
+
+# ── Style CSS ─────────────────────────────────────────────────────────────────
+st.markdown("""
+<style>
+    ... # ton CSS existant
+</style>
+""", unsafe_allow_html=True)
+
+# ← ajoute ici
+st.markdown("""
+<style>
+    [data-testid="stSidebar"] img {
+        filter: brightness(0) invert(1);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -79,7 +100,7 @@ router = st.session_state.router
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/ICRC_Logo.svg/200px-ICRC_Logo.svg.png", width=80)
+    st.image("src/assets/logo.png", width=80)
     st.title("⚖️ Assistant DIH")
     st.markdown("---")
 
