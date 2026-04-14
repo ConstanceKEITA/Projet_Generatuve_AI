@@ -74,14 +74,12 @@ def build_rag_chain(config_path="config.yaml"):
     return chain
 
 
-def ask_rag(query: str, config_path="config.yaml") -> str:
-    """Pose une question au RAG et retourne la réponse avec les sources."""
+def ask_rag(query: str, config_path="config.yaml") -> tuple:
     chain = build_rag_chain(config_path)
     result = chain.invoke({"query": query})
 
     answer = result["result"]
 
-    # Ajouter les sources si disponibles
     sources = []
     for doc in result.get("source_documents", []):
         source = doc.metadata.get("source", "document")
@@ -91,11 +89,8 @@ def ask_rag(query: str, config_path="config.yaml") -> str:
         else:
             sources.append(source)
 
-    if sources:
-        sources_uniques = list(set(sources))
-        answer += f"\n\nSources : {', '.join(sources_uniques)}"
-
-    return answer
+    sources_uniques = list(set(sources)) if sources else []
+    return answer, sources_uniques
 
 
 if __name__ == "__main__":

@@ -3,7 +3,6 @@ from agent.agent import Agent
 from rag.rag_chain import ask_rag
 from memory import MemoryManager
 
-
 class Router:
     """
     Router intelligent :
@@ -11,37 +10,25 @@ class Router:
     - Par défaut → RAG
     - Mémoire pour conserver le contexte
     """
-
     def __init__(self):
         self.memory = MemoryManager()
         self.agent = Agent(rag_callable=ask_rag)
 
-    def route(self, query: str) -> str:
+    def route(self, query: str) -> tuple:
         q = query.lower()
-
-        # 1. Météo
         if "météo" in q or "meteo" in q:
-            answer = self.agent.decide_and_answer(query)
-
-        # 2. Calcul
+            return self.agent.decide_and_answer(query), []
         elif re.search(r'\d+\s*[\+\-\*\/]\s*\d+', q):
-            answer = self.agent.decide_and_answer(query)
-
-        # 3. Web explicite
+            return self.agent.decide_and_answer(query), []
         elif "recherche" in q or "google" in q or "web" in q:
-            answer = self.agent.decide_and_answer(query)
-
-        # 4. Résumé ou citation → Agent
+            return self.agent.decide_and_answer(query), []
         elif "résume" in q or "formate" in q or "citation" in q:
-            answer = self.agent.decide_and_answer(query)
-
-        # 5. Par défaut → RAG
+            return self.agent.decide_and_answer(query), []
         else:
-            answer = ask_rag(query)
-
-        self.memory.add_user_message(query)
-        self.memory.add_ai_message(answer)
-        return answer
+            answer, sources = ask_rag(query)
+            self.memory.add_user_message(query)
+            self.memory.add_ai_message(answer)
+            return answer, sources
 
     def get_history(self):
         return self.memory.get_history()
