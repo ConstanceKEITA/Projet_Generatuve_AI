@@ -5,3 +5,4 @@ __pycache__/
 data/vectorstore/
 .files/
 public/avatars/
+.chainlit/translations/
