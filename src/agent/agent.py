@@ -1,43 +1,75 @@
-import re
-from src.tools.calculator import calculate
-from src.tools.weather import get_weather
-from src.tools.web_search import web_search
-from src.tools.summarizer import summarize
-from src.tools.citation_formatter import format_citation
+from langchain_mistralai import ChatMistralAI
+from langchain_core.messages import HumanMessage
+from tools.calculator import calculate
+from tools.weather import get_weather
+from tools.web_search import web_search
+from tools.summarizer import summarize
+from tools.citation_formatter import format_citation
+
 
 class Agent:
     def __init__(self, rag_callable):
         self.rag_callable = rag_callable
+        self.llm = ChatMistralAI(
+            model="mistral-small-latest",
+            temperature=0
+        )
 
-    def decide_and_answer(self, query: str) -> str:
-        q_lower = query.lower()
+    def _route(self, query: str) -> str:
+        """Demande à Mistral quel outil utiliser."""
+        routing_prompt = f"""Tu es un router d'outils pour un assistant juridique spécialisé en Droit Pénal International.
+Analyse la question et réponds UNIQUEMENT par un de ces mots, sans ponctuation ni explication :
 
-        if "météo" in q_lower or "meteo" in q_lower:
-            return get_weather("Paris")
+- RAG : question théorique sur des concepts juridiques, articles, conventions, définitions, principes, obligations ou droits du DIH (ex: "qu'est-ce que le principe de distinction ?", "que dit l'article 3 commun ?", "quelles sont les obligations des parties à un conflit ?")
+- WEB : question sur des faits réels, des personnes nommées, des événements datés, des actualités, des mandats d'arrêt, des décisions récentes de tribunaux, des conflits en cours (ex: "mandat CPI contre Poutine", "dernières décisions de la CIJ sur Gaza", "Netanyahou a-t-il été arrêté ?")
+- METEO : question sur la météo actuelle d'une ville ou d'un pays (ex: "quel temps fait-il à Genève ?")
+- CALCUL : opération mathématique pure avec des chiffres (ex: "combien font 12 * 8 ?", "1945 + 79 ?")
+- RESUME : l'utilisateur demande explicitement un résumé, une synthèse ou les points clés d'un texte, d'un article juridique ou d'une convention (ex: "résume l'article 51", "quels sont les points clés du Protocole additionnel I ?", "synthétise la Convention de Genève IV")
+- CITATION : l'utilisateur veut formater ou mettre en forme une référence juridique selon les standards académiques (ex: "formate la Convention de Genève III art. 17", "cite le Statut de Rome article 8")
 
-        if re.search(r'\d+\s*[\+\-\*\/]\s*\d+', q_lower):
-            return calculate(query)
+En cas de doute entre RAG et WEB, privilégie WEB si la question porte sur un événement daté, une personne nommée, ou un fait vérifiable récent.
+En cas de doute entre RAG et RESUME, privilégie RESUME si l'utilisateur utilise explicitement les mots "résume", "synthétise", "points clés", "en bref" ou "simplifie".
+En cas de doute entre RESUME et WEB, privilégie RESUME si l'utilisateur cite un article ou une convention précise.
+En cas de doute entre RAG et CITATION, privilégie CITATION si l'utilisateur utilise les mots "formate", "cite", "référence" ou "bibliographie".
+En cas de doute entre WEB et CITATION, privilégie CITATION si la question porte sur la mise en forme d'une source juridique plutôt que sur son contenu.
+Si aucun outil ne correspond clairement, utilise RAG par défaut pour maximiser l'exhaustivité de la réponse.
 
-        if "recherche" in q_lower or "google" in q_lower or "web" in q_lower:
-            return web_search(query)
+Question : {query}
+Outil :"""
 
-        if "résume" in q_lower or "résumer" in q_lower or "synthèse" in q_lower:
-            for kw in ["résume", "résumer", "synthèse"]:
-                if kw in q_lower:
-                    text = query[q_lower.index(kw) + len(kw):].strip()
-                    return summarize(text)
+        response = self.llm.invoke([HumanMessage(content=routing_prompt)])
+        return response.content.strip().upper()
 
-        if "citation" in q_lower or "citer" in q_lower or "référence" in q_lower or "formate" in q_lower:
-            for kw in ["citation", "citer", "référence", "formate"]:
-                if kw in q_lower:
-                    ref = query[q_lower.index(kw) + len(kw):].strip()
-                    return format_citation(ref)
+    def _is_rag_sufficient(self, rag_response: str, query: str) -> bool:
+        check_prompt = f"""Tu es un évaluateur de réponses juridiques.
+La question posée est : {query}
+La réponse RAG obtenue est : {rag_response}
 
-        # RAG d'abord
-        rag_response = self.rag_callable(query)
+Cette réponse est-elle suffisante et précise pour répondre à la question ?
+Réponds UNIQUEMENT par OUI ou NON.
+"""
+        response = self.llm.invoke([HumanMessage(content=check_prompt)])
+        return "OUI" in response.content.upper()
 
-        # Si le RAG ne sait pas → fallback web_search juridique
-        if "ne sais pas" in rag_response or "ne trouve pas" in rag_response:
-            return web_search(query)
+    def decide_and_answer(self, query: str, history: str = "") -> tuple[str, list, str]:
+        tool = self._route(query)
 
-        return rag_response
+        if tool == "WEB":
+            answer, sources = web_search(query)
+            return answer, sources, "🌐 Web Search"
+        elif tool == "METEO":
+            return get_weather("Paris"), [], "🌤️ Météo"
+        elif tool == "CALCUL":
+            return calculate(query), [], "🔢 Calcul"
+        elif tool == "RESUME":
+            rag_content, sources = self.rag_callable(query, history=history)
+            return summarize(rag_content), sources, "📝 Résumé"
+        elif tool == "CITATION":
+            return format_citation(query), [], "📌 Citation"
+        else:
+            rag_response, sources = self.rag_callable(query, history=history)
+            if self._is_rag_sufficient(rag_response, query):
+                return rag_response, sources, "📄 RAG"
+            else:
+                web_response, web_sources = web_search(query)
+                return web_response, sources + web_sources, "⚖️ RAG + Web"

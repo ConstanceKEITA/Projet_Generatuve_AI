@@ -94,9 +94,8 @@ Réponse :"""
         response = llm.invoke([HumanMessage(content=prompt)])
 
         answer = response.content
-        answer += f"\n\nSources consultées :\n" + "\n".join(f"- {s}" for s in sources)
 
-        return answer
+        return answer, sources
 
     except Exception as e:
         log.warning(f"Erreur web_search : {e}")

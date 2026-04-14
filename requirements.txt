@@ -25,9 +25,14 @@ pyyaml
 
 # Web search
 tavily-python
+ddgs
 
 # Interface
 chainlit
+streamlit
+
+# Tests
+pytest
 
 # API (optionnel)
 fastapi
