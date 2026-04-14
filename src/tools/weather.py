@@ -1,11 +1,15 @@
 import requests
+import unicodedata
+
 
 def get_weather(city: str) -> str:
     """
     Récupère la météo réelle d'une ville via wttr.in (gratuit, sans clé API).
     """
     try:
-        url = f"https://wttr.in/{city}?format=j1&lang=fr"
+        # Normaliser les accents pour wttr.in (ex: Bogotá → Bogota)
+        city_ascii = unicodedata.normalize('NFD', city).encode('ascii', 'ignore').decode('utf-8')
+        url = f"https://wttr.in/{city_ascii}?format=j1"
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         data = response.json()
@@ -19,7 +23,7 @@ def get_weather(city: str) -> str:
         temp_c = current["temp_C"]
         feels_like = current["FeelsLikeC"]
         humidity = current["humidity"]
-        description = current["lang_fr"][0]["value"] if current.get("lang_fr") else current["weatherDesc"][0]["value"]
+        description = current["weatherDesc"][0]["value"]
         wind_kmph = current["windspeedKmph"]
 
         return (
@@ -43,4 +47,4 @@ def get_weather(city: str) -> str:
 if __name__ == "__main__":
     print(get_weather("Paris"))
     print(get_weather("Dakar"))
-    print(get_weather("Bogota"))
+    print(get_weather("Bogotá"))

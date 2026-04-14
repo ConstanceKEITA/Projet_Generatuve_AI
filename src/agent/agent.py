@@ -1,3 +1,4 @@
+import re
 from langchain_mistralai import ChatMistralAI
 from langchain_core.messages import HumanMessage
 from tools.calculator import calculate
@@ -5,6 +6,23 @@ from tools.weather import get_weather
 from tools.web_search import web_search
 from tools.summarizer import summarize
 from tools.citation_formatter import format_citation
+
+
+def extract_city(query: str) -> str:
+    """Extrait le nom de la ville depuis la question."""
+    q = query.lower()
+    patterns = [
+        r"météo (?:à|a|au|en|de|pour)\s+([a-zA-ZÀ-ÿ\s\-]+?)(?:\s*\?|$)",
+        r"meteo (?:à|a|au|en|de|pour)\s+([a-zA-ZÀ-ÿ\s\-]+?)(?:\s*\?|$)",
+        r"temps (?:à|a|au|en|de|pour)\s+([a-zA-ZÀ-ÿ\s\-]+?)(?:\s*\?|$)",
+        r"température (?:à|a|au|en|de|pour)\s+([a-zA-ZÀ-ÿ\s\-]+?)(?:\s*\?|$)",
+        r"weather (?:in|at|for)\s+([a-zA-ZÀ-ÿ\s\-]+?)(?:\s*\?|$)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, q)
+        if match:
+            return match.group(1).strip().title()
+    return "Paris"
 
 
 class Agent:
@@ -77,9 +95,8 @@ Réponds UNIQUEMENT par OUI ou NON.
             answer, sources = web_search(query)
             return answer, sources, "🌐 Web Search"
         elif tool == "METEO":
-            cities = self._extract_cities(query)
-            results = [get_weather(city) for city in cities]
-            return "\n\n".join(results), [], "🌤️ Météo"
+            city = extract_city(query)
+            return get_weather(city), [], "🌤️ Météo"
         elif tool == "CALCUL":
             return calculate(query), [], "🔢 Calcul"
         elif tool == "RESUME":
