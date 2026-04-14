@@ -1,9 +1,9 @@
 import re
-from src.tools.calculator import calculate
-from src.tools.weather import get_weather
-from src.tools.web_search import web_search
-from src.tools.summarizer import summarize
-from src.tools.citation_formatter import format_citation
+from tools.calculator import calculate
+from tools.weather import get_weather
+from tools.web_search import web_search
+from tools.summarizer import summarize
+from tools.citation_formatter import format_citation
 
 class Agent:
     def __init__(self, rag_callable):

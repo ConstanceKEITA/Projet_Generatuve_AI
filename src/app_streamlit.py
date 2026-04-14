@@ -139,7 +139,7 @@ with col1:
 with col2:
     submit = st.button("Envoyer →", use_container_width=True)
 
-if (query and submit) or query:
+if query and submit:
     with st.spinner("Réflexion en cours..."):
         answer = router.route(query)
         tool_used = detect_tool(query)
