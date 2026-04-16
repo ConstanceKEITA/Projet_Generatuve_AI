@@ -2,7 +2,7 @@
 .venv/
 __pycache__/
 *.pyc
-data/vectorstore/
+
 .files/
 public/avatars/
 .chainlit/translations/
