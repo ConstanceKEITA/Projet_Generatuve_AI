@@ -112,8 +112,7 @@ Réponds UNIQUEMENT par OUI ou NON.
         tool = self._route(query, history)
 
         if tool == "WEB":
-            enriched_query = f"{history}\n\nQuestion : {query}" if history else query
-            answer, sources = web_search(enriched_query)
+            answer, sources = web_search(query)
             return answer, sources, "🌐 Web Search"
         elif tool == "METEO":
             city = extract_city(query, history)

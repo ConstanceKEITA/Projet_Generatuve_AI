@@ -2,7 +2,17 @@ import re
 
 def calculate(expression: str) -> str:
     try:
+        expression = (expression
+                      .replace('×', '*')
+                      .replace('÷', '/')
+                      .replace('−', '-')
+                      .replace('–', '-')
+                      .replace('—', '-')
+                      .replace('^', '**')
+                      .replace(',', '.')
+                      )
         match = re.search(r'\d[\d\s+\-*/.()\[\]]*\d|\d', expression)
+        ...
         if not match:
             return "Aucune expression mathématique trouvée."
         clean = match.group().strip()
