@@ -4,10 +4,8 @@ __pycache__/
 *.pyc
 
 .files/
-public/avatars/
 .chainlit/translations/
 .idea/
-src/assets/International_Criminal_Court_logo.svg
 .DS_Store
 src/.DS_Store
 src/agent/.DS_Store
