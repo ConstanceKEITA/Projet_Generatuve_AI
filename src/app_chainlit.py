@@ -2,6 +2,9 @@ import base64
 import chainlit as cl
 from langchain_mistralai import ChatMistralAI
 from langchain_core.messages import HumanMessage
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from router import Router
 
 
